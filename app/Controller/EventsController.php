@@ -3,10 +3,44 @@ class EventsController extends AppController
 {
     public $uses = array('Event');
 
+    public $components = array('Search.Prg');
+
     public function index()
     {
-        $events = $this->Event->find('all');
-        $this->set('events', $events);
+        $this->log(__METHOD__.'開始');
+        try
+        {
+            $this->Prg->commonProcess();
+            if(isset($this->passedArgs['search_word']))
+            {
+                $this->log(__METHOD__.'$this->passedArgs');
+                $this->log($this->passedArgs);
+                $conditions = $this->Event->parseCriteria($this->passedArgs);
+                $this->log(__METHOD__.'$conditions');
+                $this->log($conditions);
+                $this->pagenate = array(
+                    'conditions' => $conditions,
+                    'limit' => 2,
+                    'order' => array(
+                        'id' => 'desc'
+                    )
+                );
+                $events = $this->paginate('Event');
+            }
+            else
+            {
+                $events = $this->Event->find('all');
+            }
+            $this->log(__METHOD__.'$events:');
+            $this->log($events);
+            $this->set('events', $events);
+        }
+        catch(Exception $e)
+        {
+            $this->log(__METHOD__.'失敗');
+            $this->log(__METHOD__.'$e:');
+            $this->log($e);
+        }
     }
 
     public function add()
